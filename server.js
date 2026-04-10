@@ -1,7 +1,8 @@
 import express from 'express';
+import db from './models/index.js';  // initilizes Sequelize and imports all models with associations
 
 const app = express();
-const PORT = 5000;
+const PORT = 3000;
 
 // Middleware to parse JSON
 app.use(express.json());
@@ -30,7 +31,17 @@ app.post('/api/hello', (req, res) => {
   });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`✅ Server is running on http://localhost:${PORT}`);
-});
+// Start server only after the database schema is ready.
+const startServer = async () => {
+  try {
+    await db.sequelize.sync();
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
