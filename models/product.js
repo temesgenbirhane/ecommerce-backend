@@ -3,26 +3,33 @@ export default (sequelize, DataTypes) => {
     'Product',
     {
       id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
+        type: DataTypes.STRING(36),
         primaryKey: true
+      },
+      image: {
+        type: DataTypes.STRING,
+        allowNull: false
       },
       name: {
         type: DataTypes.STRING,
         allowNull: false
       },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: true
+      rating: {
+        type: DataTypes.JSON,
+        allowNull: false,
+        defaultValue: {
+          stars: 0,
+          count: 0
+        }
       },
-      price: {
-        type: DataTypes.DECIMAL(10, 2),
+      priceCents: {
+        type: DataTypes.INTEGER,
         allowNull: false
       },
-      stock: {
-        type: DataTypes.INTEGER,
+      keywords: {
+        type: DataTypes.JSON,
         allowNull: false,
-        defaultValue: 0
+        defaultValue: []
       }
     },
     {

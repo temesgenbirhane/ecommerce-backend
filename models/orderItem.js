@@ -12,7 +12,7 @@ export default (sequelize, DataTypes) => {
         allowNull: false
       },
       productId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING(36),
         allowNull: false
       },
       quantity: {

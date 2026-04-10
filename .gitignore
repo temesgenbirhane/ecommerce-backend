@@ -1,4 +1,5 @@
 node_modules/
+ecommerce.sqlite
 *.sqlite
 *.sqlite-journal
 *.sqlite-shm
