@@ -461,4 +461,29 @@ export const defaultProducts = [  // This code is from products.json, to be save
     "priceCents": 1899,
     "keywords": ["kitchen", "kitchen towels", "tissues"]
   }
-]
+];
+
+export const seedDefaultProducts = async (ProductModel) => {
+  const columns = await ProductModel.describe();
+  const idType = String(columns?.id?.type ?? '').toUpperCase();
+
+  if (idType.includes('INT')) {
+    const countBeforeFix = await ProductModel.count();
+
+    if (countBeforeFix > 0) {
+      return { inserted: 0, skipped: true };
+    }
+
+    await ProductModel.drop();
+    await ProductModel.sync();
+  }
+
+  const existingProducts = await ProductModel.count();
+
+  if (existingProducts > 0) {
+    return { inserted: 0, skipped: true };
+  }
+
+  await ProductModel.bulkCreate(defaultProducts);
+  return { inserted: defaultProducts.length, skipped: false };
+};

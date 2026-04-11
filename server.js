@@ -1,5 +1,6 @@
 import express from 'express';
 import db from './models/index.js';
+import { seedDefaultProducts } from './defaultData/defaultData.js';
 
 const app = express();
 const PORT = 3000;
@@ -32,7 +33,7 @@ app.post('/api/hello', (req, res) => {
 });
 
 // Product routes
-app.get('/api/products', async (req, res) => {
+app.get('/products', async (req, res) => {
   try {
     const products = await db.Product.findAll({ order: [['name', 'ASC']] });
     res.json(products);
@@ -41,7 +42,7 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-app.get('/api/products/:id', async (req, res) => {
+app.get('/products/:id', async (req, res) => {
   try {
     const product = await db.Product.findByPk(req.params.id);
 
@@ -55,7 +56,7 @@ app.get('/api/products/:id', async (req, res) => {
   }
 });
 
-app.post('/api/products', async (req, res) => {
+app.post('/products', async (req, res) => {
   try {
     const { id, image, name, rating, priceCents, keywords } = req.body;
 
@@ -83,9 +84,26 @@ app.post('/api/products', async (req, res) => {
 // Start server only after the database schema is ready.
 const startServer = async () => {
   try {
-    await db.sequelize.sync({ alter: true });
-    app.listen(PORT, () => {
+    await db.sequelize.sync();
+
+    const seedResult = await seedDefaultProducts(db.Product);
+
+    if (!seedResult.skipped) {
+      console.log(`Seeded ${seedResult.inserted} default products.`);
+    }
+
+    const server = app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
+    });
+
+    server.on('error', (listenError) => {
+      if (listenError?.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use. Run: npm run stop:3000`);
+      } else {
+        console.error('Server listen error:', listenError);
+      }
+
+      process.exit(1);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
