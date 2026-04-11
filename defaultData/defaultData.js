@@ -509,3 +509,18 @@ export const seedDefaultDeliveryOptions = async (DeliveryOptionModel) => {
   await DeliveryOptionModel.bulkCreate(defaultDeliveryOptions);
   return { inserted: defaultDeliveryOptions.length, skipped: false };
 };
+
+export const defaultCart = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'cart.json'), 'utf-8')
+);
+
+export const seedDefaultCart = async (CartItemModel) => {
+  const existingCartItems = await CartItemModel.count();
+
+  if (existingCartItems > 0) {
+    return { inserted: 0, skipped: true };
+  }
+
+  await CartItemModel.bulkCreate(defaultCart);
+  return { inserted: defaultCart.length, skipped: false };
+};

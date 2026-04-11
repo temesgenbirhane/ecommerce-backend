@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import db from './models/index.js';
-import { seedDefaultDeliveryOptions, seedDefaultProducts } from './defaultData/defaultData.js';
+import { seedDefaultCart, seedDefaultDeliveryOptions, seedDefaultProducts } from './defaultData/defaultData.js';
 
 const app = express();
 const PORT = 3000;
@@ -96,6 +96,16 @@ app.get('/delivery-options', async (_req, res) => {
   }
 });
 
+// Cart routes
+app.get('/cart-items', async (_req, res) => {
+  try {
+    const cartItems = await db.CartItem.findAll({ order: [['id', 'ASC']] });
+    res.json(cartItems);
+  } catch (_error) {
+    res.status(500).json({ message: 'Failed to fetch cart items' });
+  }
+});
+
 // Start server only after the database schema is ready.
 const startServer = async () => {
   try {
@@ -111,6 +121,12 @@ const startServer = async () => {
 
     if (!deliverySeedResult.skipped) {
       console.log(`Seeded ${deliverySeedResult.inserted} default delivery options.`);
+    }
+
+    const cartSeedResult = await seedDefaultCart(db.CartItem);
+
+    if (!cartSeedResult.skipped) {
+      console.log(`Seeded ${cartSeedResult.inserted} default cart items.`);
     }
 
     const server = app.listen(PORT, () => {
