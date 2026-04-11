@@ -37,7 +37,7 @@ app.get('/products', async (req, res) => {
   try {
     const products = await db.Product.findAll({ order: [['name', 'ASC']] });
     res.json(products);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ message: 'Failed to fetch products' });
   }
 });
@@ -51,7 +51,7 @@ app.get('/products/:id', async (req, res) => {
     }
 
     res.json(product);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ message: 'Failed to fetch product' });
   }
 });
@@ -76,7 +76,7 @@ app.post('/products', async (req, res) => {
     });
 
     res.status(201).json(product);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ message: 'Failed to create product' });
   }
 });

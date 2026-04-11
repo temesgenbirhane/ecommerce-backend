@@ -9,7 +9,9 @@
     "dev": "nodemon server.js",
     "stop:3000": "powershell -NoProfile -Command \"$conn = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($conn) { $conn | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force } }\"",
     "start:clean": "npm run stop:3000 && node server.js",
-    "dev:clean": "npm run stop:3000 && nodemon server.js"
+    "dev:clean": "npm run stop:3000 && nodemon server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +24,9 @@
     "sqlite3": "^6.0.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.2.0",
+    "globals": "^17.4.0",
     "nodemon": "^3.1.14"
   }
 }
