@@ -1,12 +1,17 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import db from './models/index.js';
 import { seedDefaultProducts } from './defaultData/defaultData.js';
 
 const app = express();
 const PORT = 3000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Middleware to parse JSON
 app.use(express.json());
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Basic Route
 app.get('/', (req, res) => {
