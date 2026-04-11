@@ -1,3 +1,10 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export const defaultProducts = [  // This code is from products.json, to be saved in the database on startup if the products table is empty as a seed data set.
   {
     "id": "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
@@ -486,4 +493,19 @@ export const seedDefaultProducts = async (ProductModel) => {
 
   await ProductModel.bulkCreate(defaultProducts);
   return { inserted: defaultProducts.length, skipped: false };
+};
+
+export const defaultDeliveryOptions = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'deliveryOptions.json'), 'utf-8')
+);
+
+export const seedDefaultDeliveryOptions = async (DeliveryOptionModel) => {
+  const existingDeliveryOptions = await DeliveryOptionModel.count();
+
+  if (existingDeliveryOptions > 0) {
+    return { inserted: 0, skipped: true };
+  }
+
+  await DeliveryOptionModel.bulkCreate(defaultDeliveryOptions);
+  return { inserted: defaultDeliveryOptions.length, skipped: false };
 };

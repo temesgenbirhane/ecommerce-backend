@@ -3,6 +3,7 @@ import defineUser from './user.js';
 import defineProduct from './product.js';
 import defineOrder from './order.js';
 import defineOrderItem from './orderItem.js';
+import defineDeliveryOption from './deliveryOption.js';
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',
@@ -19,6 +20,7 @@ db.User = defineUser(sequelize, DataTypes);
 db.Product = defineProduct(sequelize, DataTypes);
 db.Order = defineOrder(sequelize, DataTypes);
 db.OrderItem = defineOrderItem(sequelize, DataTypes);
+db.DeliveryOption = defineDeliveryOption(sequelize, DataTypes);
 
 Object.values(db).forEach((model) => {
   if (model && typeof model.associate === 'function') {

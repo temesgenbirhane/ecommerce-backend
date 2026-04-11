@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import db from './models/index.js';
-import { seedDefaultProducts } from './defaultData/defaultData.js';
+import { seedDefaultDeliveryOptions, seedDefaultProducts } from './defaultData/defaultData.js';
 
 const app = express();
 const PORT = 3000;
@@ -86,6 +86,16 @@ app.post('/products', async (req, res) => {
   }
 });
 
+// Delivery option routes
+app.get('/delivery-options', async (_req, res) => {
+  try {
+    const deliveryOptions = await db.DeliveryOption.findAll({ order: [['id', 'ASC']] });
+    res.json(deliveryOptions);
+  } catch (_error) {
+    res.status(500).json({ message: 'Failed to fetch delivery options' });
+  }
+});
+
 // Start server only after the database schema is ready.
 const startServer = async () => {
   try {
@@ -95,6 +105,12 @@ const startServer = async () => {
 
     if (!seedResult.skipped) {
       console.log(`Seeded ${seedResult.inserted} default products.`);
+    }
+
+    const deliverySeedResult = await seedDefaultDeliveryOptions(db.DeliveryOption);
+
+    if (!deliverySeedResult.skipped) {
+      console.log(`Seeded ${deliverySeedResult.inserted} default delivery options.`);
     }
 
     const server = app.listen(PORT, () => {
