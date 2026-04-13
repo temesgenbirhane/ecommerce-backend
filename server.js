@@ -136,6 +136,54 @@ app.get('/cart-items', async (_req, res) => {
   }
 });
 
+app.post('/cart-items', async (req, res) => { // Mind you this is a post api, so we cant use the browser to test it.
+  // in order to test it, you can use a tool like Postman or curl 
+  try {
+    const { productId, quantity } = req.body;
+    const parsedQuantity = Number(quantity);
+    const defaultDeliveryOptionId = '1';
+
+    if (!productId) {
+      return res.status(400).json({ message: 'productId is required' });
+    }
+
+    if (!Number.isInteger(parsedQuantity) || parsedQuantity < 1 || parsedQuantity > 10) {
+      return res.status(400).json({
+        message: 'quantity must be a number between 1 and 10'
+      });
+    }
+
+    const product = await db.Product.findByPk(productId);
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    const existingCartItem = await db.CartItem.findOne({
+      where: {
+        productId
+      }
+    });
+
+    if (existingCartItem) {
+      existingCartItem.quantity += parsedQuantity;
+      await existingCartItem.save();
+
+      return res.status(200).json(existingCartItem);
+    }
+
+    const cartItem = await db.CartItem.create({
+      productId,
+      quantity: parsedQuantity,
+      deliveryOptionId: defaultDeliveryOptionId
+    });
+
+    res.status(201).json(cartItem);
+  } catch (_error) {
+    res.status(500).json({ message: 'Failed to add item to cart' });
+  }
+});
+
 // Start server only after the database schema is ready.
 const startServer = async () => {
   try {
