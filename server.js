@@ -184,6 +184,60 @@ app.post('/cart-items', async (req, res) => { // Mind you this is a post api, so
   }
 });
 
+app.put('/cart-items/:productId', async (req, res) => { // PUT means update. :/productId is a parameter that will be replaced with 
+// the actual productId when the API is called. for example, if you want to update 
+// the cart item with productId '123', you would make a PUT request to /cart-items/123
+  try {
+    const { productId } = req.params;
+    const { quantity, deliveryOptionId } = req.body;
+
+    if (quantity === undefined && deliveryOptionId === undefined) {
+      return res.status(400).json({
+        message: 'Provide quantity or deliveryOptionId to update'
+      });
+    }
+
+    const cartItem = await db.CartItem.findOne({
+      where: {
+        productId
+      }
+    });
+
+    if (!cartItem) {
+      return res.status(404).json({ message: 'Cart item not found' });
+    }
+
+    if (quantity !== undefined) {
+      const parsedQuantity = Number(quantity);
+
+      if (!Number.isInteger(parsedQuantity) || parsedQuantity < 1 || parsedQuantity > 10) {
+        return res.status(400).json({
+          message: 'quantity must be a number between 1 and 10'
+        });
+      }
+
+      cartItem.quantity = parsedQuantity;
+    }
+
+    if (deliveryOptionId !== undefined) {
+      const deliveryOption = await db.DeliveryOption.findByPk(deliveryOptionId);
+
+      if (!deliveryOption) {
+        return res.status(400).json({
+          message: 'deliveryOptionId is invalid'
+        });
+      }
+
+      cartItem.deliveryOptionId = deliveryOptionId;
+    }
+
+    await cartItem.save();
+    res.json(cartItem);
+  } catch (_error) {
+    res.status(500).json({ message: 'Failed to update cart item' });
+  }
+});
+
 // Start server only after the database schema is ready.
 const startServer = async () => {
   try {
