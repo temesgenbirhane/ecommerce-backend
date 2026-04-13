@@ -99,8 +99,38 @@ app.get('/delivery-options', async (_req, res) => {
 // Cart routes
 app.get('/cart-items', async (_req, res) => {
   try {
-    const cartItems = await db.CartItem.findAll({ order: [['id', 'ASC']] });
-    res.json(cartItems);
+    const { expand } = _req.query;
+    const shouldExpandProduct = expand === 'product';
+
+    const cartItems = await db.CartItem.findAll({
+      order: [['id', 'ASC']],
+      ...(shouldExpandProduct
+        ? {
+            include: [
+              {
+                model: db.Product,
+                as: 'product'
+              }
+            ]
+          }
+        : {})
+    });
+
+    if (!shouldExpandProduct) {
+      return res.json(cartItems);
+    }
+
+    const expandedCartItems = cartItems.map((cartItem) => {
+      const plainCartItem = cartItem.get({ plain: true });
+      const { product, ...rest } = plainCartItem;
+
+      return {
+        ...rest,
+        product
+      };
+    });
+
+    res.json(expandedCartItems);
   } catch (_error) {
     res.status(500).json({ message: 'Failed to fetch cart items' });
   }
