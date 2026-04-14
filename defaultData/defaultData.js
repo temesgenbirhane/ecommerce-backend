@@ -1,3 +1,6 @@
+
+// This file contains logic for seeding data for carts.json, deliveryOptions.json, orders.json, and products.json 
+// The other files only conatin the JSON files which hold only raw data. This JavaScript file reads those JSON files and inserts the data through Sequelize
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
