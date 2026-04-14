@@ -30,7 +30,8 @@ app.use(
     seedDefaultProducts
   })
 );
-app.use('/products', createProductRouter(db));
+app.use('/products', createProductRouter(db)); // adds /products routes at the start of the url,
+//  so in productRoutes.js becomes only '/' and '/:id' instead of '/products/' and '/products/:id'
 app.use('/delivery-options', createDeliveryOptionRouter(db));
 app.use('/orders', createOrderRouter(db));
 app.use('/cart-items', createCartItemRouter(db));
