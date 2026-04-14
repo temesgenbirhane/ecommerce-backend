@@ -13,6 +13,7 @@ import { createProductRouter } from './routes/productRoutes.js';
 import { createDeliveryOptionRouter } from './routes/deliveryOptionRoutes.js';
 import { createOrderRouter } from './routes/orderRoutes.js';
 import { createCartItemRouter } from './routes/cartItemRoutes.js';
+import { createPaymentSummaryRouter } from './routes/paymentSummaryRoutes.js';
 
 const app = express();
 const PORT = 3000;
@@ -35,6 +36,7 @@ app.use('/products', createProductRouter(db)); // adds /products routes at the s
 app.use('/delivery-options', createDeliveryOptionRouter(db));
 app.use('/orders', createOrderRouter(db));
 app.use('/cart-items', createCartItemRouter(db));
+app.use(createPaymentSummaryRouter(db));
 
 const startServer = async () => {
   try {
