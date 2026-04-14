@@ -2,17 +2,14 @@ export default (sequelize, DataTypes) => {
   const OrderItem = sequelize.define(
     'OrderItem',
     {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
-      },
       orderId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING(36),
+        primaryKey: true,
         allowNull: false
       },
       productId: {
         type: DataTypes.STRING(36),
+        primaryKey: true,
         allowNull: false
       },
       quantity: {
@@ -20,8 +17,8 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 1
       },
-      unitPrice: {
-        type: DataTypes.DECIMAL(10, 2),
+      estimatedDeliveryTimeMs: {
+        type: DataTypes.BIGINT,
         allowNull: false
       }
     },

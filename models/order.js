@@ -3,23 +3,16 @@ export default (sequelize, DataTypes) => {
     'Order',
     {
       id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
+        type: DataTypes.STRING(36),
         primaryKey: true
       },
-      userId: {
-        type: DataTypes.INTEGER,
+      orderTimeMs: {
+        type: DataTypes.BIGINT,
         allowNull: false
       },
-      status: {
-        type: DataTypes.ENUM('pending', 'paid', 'shipped', 'delivered', 'cancelled'),
-        allowNull: false,
-        defaultValue: 'pending'
-      },
-      totalAmount: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-        defaultValue: 0
+      totalCostCents: {
+        type: DataTypes.INTEGER,
+        allowNull: false
       }
     },
     {
@@ -29,8 +22,7 @@ export default (sequelize, DataTypes) => {
   );
 
   Order.associate = (models) => {
-    Order.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
-    Order.hasMany(models.OrderItem, { foreignKey: 'orderId', as: 'items' });
+    Order.hasMany(models.OrderItem, { foreignKey: 'orderId', as: 'products' });
   };
 
   return Order;

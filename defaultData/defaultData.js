@@ -514,6 +514,10 @@ export const defaultCart = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'cart.json'), 'utf-8')
 );
 
+export const defaultOrders = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'orders.json'), 'utf-8')
+);
+
 export const seedDefaultCart = async (CartItemModel) => {
   const existingCartItems = await CartItemModel.count();
 
@@ -523,4 +527,38 @@ export const seedDefaultCart = async (CartItemModel) => {
 
   await CartItemModel.bulkCreate(defaultCart);
   return { inserted: defaultCart.length, skipped: false };
+};
+
+export const seedDefaultOrders = async (OrderModel, OrderItemModel) => {
+  const existingOrders = await OrderModel.count();
+
+  if (existingOrders > 0) {
+    return { insertedOrders: 0, insertedOrderItems: 0, skipped: true };
+  }
+
+  const orders = defaultOrders.map((order) => ({
+    id: order.id,
+    orderTimeMs: order.orderTimeMs,
+    totalCostCents: order.totalCostCents
+  }));
+
+  const orderItems = defaultOrders.flatMap((order) =>
+    order.products.map((product) => ({
+      orderId: order.id,
+      productId: product.productId,
+      quantity: product.quantity,
+      estimatedDeliveryTimeMs: product.estimatedDeliveryTimeMs
+    }))
+  );
+
+  await OrderModel.sequelize.transaction(async (transaction) => {
+    await OrderModel.bulkCreate(orders, { transaction });
+    await OrderItemModel.bulkCreate(orderItems, { transaction });
+  });
+
+  return {
+    insertedOrders: orders.length,
+    insertedOrderItems: orderItems.length,
+    skipped: false
+  };
 };

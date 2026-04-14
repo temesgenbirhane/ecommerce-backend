@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import db from './models/index.js';
-import { seedDefaultCart, seedDefaultDeliveryOptions, seedDefaultProducts } from './defaultData/defaultData.js';
+import { seedDefaultCart, seedDefaultDeliveryOptions, seedDefaultOrders, seedDefaultProducts } from './defaultData/defaultData.js';
 
 const app = express();
 const PORT = 3000;
@@ -93,6 +93,39 @@ app.get('/delivery-options', async (_req, res) => {
     res.json(deliveryOptions);
   } catch (_error) {
     res.status(500).json({ message: 'Failed to fetch delivery options' });
+  }
+});
+
+// Order routes
+app.get('/orders', async (_req, res) => {
+  try {
+    const { expand } = _req.query;
+    const shouldExpandProducts = expand === 'products';
+
+    const orders = await db.Order.findAll({
+      order: [['orderTimeMs', 'DESC']],
+      include: [
+        {
+          model: db.OrderItem,
+          as: 'products',
+          attributes: ['productId', 'quantity', 'estimatedDeliveryTimeMs'],
+          ...(shouldExpandProducts
+            ? {
+                include: [
+                  {
+                    model: db.Product,
+                    as: 'product'
+                  }
+                ]
+              }
+            : {})
+        }
+      ]
+    });
+
+    res.json(orders);
+  } catch (_error) {
+    res.status(500).json({ message: 'Failed to fetch orders' });
   }
 });
 
@@ -268,6 +301,13 @@ const startServer = async () => {
 
     if (!seedResult.skipped) {
       console.log(`Seeded ${seedResult.inserted} default products.`);
+    }
+
+    const orderSeedResult = await seedDefaultOrders(db.Order, db.OrderItem);
+
+    if (!orderSeedResult.skipped) {
+      console.log(`Seeded ${orderSeedResult.insertedOrders} default orders.`);
+      console.log(`Seeded ${orderSeedResult.insertedOrderItems} default order items.`);
     }
 
     const deliverySeedResult = await seedDefaultDeliveryOptions(db.DeliveryOption);
