@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { randomUUID } from 'crypto';
 import db from './models/index.js';
 import { seedDefaultCart, seedDefaultDeliveryOptions, seedDefaultOrders, seedDefaultProducts } from './defaultData/defaultData.js';
 
@@ -126,6 +127,143 @@ app.get('/orders', async (_req, res) => {
     res.json(orders);
   } catch (_error) {
     res.status(500).json({ message: 'Failed to fetch orders' });
+  }
+});
+
+app.post('/orders', async (req, res) => {
+  try {
+    const cart = Array.isArray(req.body) ? req.body : req.body?.cart;
+
+    if (!Array.isArray(cart) || cart.length === 0) {
+      return res.status(400).json({
+        message: 'cart is required and must be a non-empty array'
+      });
+    }
+
+    const normalizedCart = cart.map((item, index) => {
+      const quantity = Number(item?.quantity);
+
+      if (!item?.productId) {
+        throw new Error(`cart[${index}].productId is required`);
+      }
+
+      if (!item?.deliveryOptionId) {
+        throw new Error(`cart[${index}].deliveryOptionId is required`);
+      }
+
+      if (!Number.isInteger(quantity) || quantity < 1) {
+        throw new Error(`cart[${index}].quantity must be a positive integer`);
+      }
+
+      return {
+        productId: item.productId,
+        deliveryOptionId: item.deliveryOptionId,
+        quantity
+      };
+    });
+
+    const productIds = normalizedCart.map((item) => item.productId);
+    const duplicateProductIds = productIds.filter((productId, index) => productIds.indexOf(productId) !== index);
+
+    if (duplicateProductIds.length > 0) {
+      return res.status(400).json({
+        message: 'cart contains duplicate productId values'
+      });
+    }
+
+    const uniqueProductIds = [...new Set(productIds)];
+    const uniqueDeliveryOptionIds = [...new Set(normalizedCart.map((item) => item.deliveryOptionId))];
+
+    const [products, deliveryOptions] = await Promise.all([
+      db.Product.findAll({
+        where: {
+          id: uniqueProductIds
+        }
+      }),
+      db.DeliveryOption.findAll({
+        where: {
+          id: uniqueDeliveryOptionIds
+        }
+      })
+    ]);
+
+    if (products.length !== uniqueProductIds.length) {
+      return res.status(400).json({ message: 'cart contains invalid productId values' });
+    }
+
+    if (deliveryOptions.length !== uniqueDeliveryOptionIds.length) {
+      return res.status(400).json({ message: 'cart contains invalid deliveryOptionId values' });
+    }
+
+    const productsById = new Map(products.map((product) => [product.id, product]));
+    const deliveryOptionsById = new Map(deliveryOptions.map((option) => [option.id, option]));
+    const orderTimeMs = Date.now();
+    const millisecondsPerDay = 24 * 60 * 60 * 1000;
+
+    const calculatedItems = normalizedCart.map((item) => {
+      const product = productsById.get(item.productId);
+      const deliveryOption = deliveryOptionsById.get(item.deliveryOptionId);
+      const productCostCents = Number(product.priceCents) * item.quantity;
+      const shippingCostCents = Number(deliveryOption.priceCents);
+
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        estimatedDeliveryTimeMs: orderTimeMs + Number(deliveryOption.deliveryDays) * millisecondsPerDay,
+        lineTotalBeforeTaxCents: productCostCents + shippingCostCents
+      };
+    });
+
+    const subtotalBeforeTaxCents = calculatedItems.reduce(
+      (sum, item) => sum + item.lineTotalBeforeTaxCents,
+      0
+    );
+    const totalCostCents = Math.round(subtotalBeforeTaxCents * 1.1);
+    const orderId = randomUUID();
+
+    await db.sequelize.transaction(async (transaction) => {
+      await db.Order.create(
+        {
+          id: orderId,
+          orderTimeMs,
+          totalCostCents
+        },
+        { transaction }
+      );
+
+      await db.OrderItem.bulkCreate(
+        calculatedItems.map((item) => ({
+          orderId,
+          productId: item.productId,
+          quantity: item.quantity,
+          estimatedDeliveryTimeMs: item.estimatedDeliveryTimeMs
+        })),
+        { transaction }
+      );
+
+      await db.CartItem.destroy({
+        where: {},
+        transaction
+      });
+    });
+
+    const createdOrder = await db.Order.findByPk(orderId, {
+      include: [
+        {
+          model: db.OrderItem,
+          as: 'products',
+          attributes: ['productId', 'quantity', 'estimatedDeliveryTimeMs']
+        }
+      ]
+    });
+
+    return res.status(201).json(createdOrder);
+  } catch (error) {
+    if (error.message?.startsWith('cart[')) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    return res.status(500).json({ message: 'Failed to create order' });
   }
 });
 
