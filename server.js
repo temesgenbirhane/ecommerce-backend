@@ -238,6 +238,27 @@ app.put('/cart-items/:productId', async (req, res) => { // PUT means update. :/p
   }
 });
 
+app.delete('/cart-items/:productId', async (req, res) => {
+  try {
+    const { productId } = req.params; // get the productId from the URL parameter
+
+    const cartItem = await db.CartItem.findOne({
+      where: {
+        productId
+      }
+    });
+
+    if (!cartItem) {
+      return res.status(404).json({ message: 'Cart item not found' });
+    }
+
+    await cartItem.destroy();
+    return res.status(204).send();
+  } catch (_error) {
+    res.status(500).json({ message: 'Failed to delete cart item' });
+  }
+});
+
 // Start server only after the database schema is ready.
 const startServer = async () => {
   try {
