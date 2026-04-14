@@ -130,6 +130,42 @@ app.get('/orders', async (_req, res) => {
   }
 });
 
+app.get('/orders/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params; // get the orderId from the URL parameter
+    const { expand } = req.query;
+    const shouldExpandProducts = expand === 'products';
+
+    const order = await db.Order.findByPk(orderId, {
+      include: [
+        {
+          model: db.OrderItem,
+          as: 'products',
+          attributes: ['productId', 'quantity', 'estimatedDeliveryTimeMs'],
+          ...(shouldExpandProducts
+            ? {
+                include: [
+                  {
+                    model: db.Product,
+                    as: 'product'
+                  }
+                ]
+              }
+            : {})
+        }
+      ]
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    res.json(order);
+  } catch (_error) {
+    res.status(500).json({ message: 'Failed to fetch order' });
+  }
+});
+
 app.post('/orders', async (req, res) => {
   try {
     const cart = Array.isArray(req.body) ? req.body : req.body?.cart;
