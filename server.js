@@ -466,35 +466,43 @@ app.delete('/cart-items/:productId', async (req, res) => {
   }
 });
 
+app.post('/reset', async (_req, res) => {
+  try {
+    await db.sequelize.truncate({
+      cascade: true,
+      restartIdentity: true
+    });
+
+    const productCount = await db.Product.count();
+    let seeded = null;
+
+    if (productCount === 0) {
+      const seedResult = await seedDefaultProducts(db.Product);
+      const deliverySeedResult = await seedDefaultDeliveryOptions(db.DeliveryOption);
+      const orderSeedResult = await seedDefaultOrders(db.Order, db.OrderItem);
+      const cartSeedResult = await seedDefaultCart(db.CartItem);
+
+      seeded = {
+        products: seedResult,
+        deliveryOptions: deliverySeedResult,
+        orders: orderSeedResult,
+        cartItems: cartSeedResult
+      };
+    }
+
+    res.status(200).json({
+      message: seeded ? 'Database reset and reseed successful' : 'Database reset successful',
+      seeded
+    });
+  } catch (_error) {
+    res.status(500).json({ message: 'Failed to reset database' });
+  }
+});
+
 // Start server only after the database schema is ready.
 const startServer = async () => {
   try {
     await db.sequelize.sync();
-
-    const seedResult = await seedDefaultProducts(db.Product);
-
-    if (!seedResult.skipped) {
-      console.log(`Seeded ${seedResult.inserted} default products.`);
-    }
-
-    const orderSeedResult = await seedDefaultOrders(db.Order, db.OrderItem);
-
-    if (!orderSeedResult.skipped) {
-      console.log(`Seeded ${orderSeedResult.insertedOrders} default orders.`);
-      console.log(`Seeded ${orderSeedResult.insertedOrderItems} default order items.`);
-    }
-
-    const deliverySeedResult = await seedDefaultDeliveryOptions(db.DeliveryOption);
-
-    if (!deliverySeedResult.skipped) {
-      console.log(`Seeded ${deliverySeedResult.inserted} default delivery options.`);
-    }
-
-    const cartSeedResult = await seedDefaultCart(db.CartItem);
-
-    if (!cartSeedResult.skipped) {
-      console.log(`Seeded ${cartSeedResult.inserted} default cart items.`);
-    }
 
     const server = app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
