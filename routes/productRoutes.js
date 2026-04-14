@@ -3,12 +3,29 @@ import express from 'express';
 export const createProductRouter = (db) => {
   const router = express.Router();
 
-  router.get('/', async (_req, res) => {
+  router.get('/', async (req, res) => {
     try {
+      const searchText = typeof req.query.search === 'string' ? req.query.search.trim() : '';
       const products = await db.Product.findAll({ order: [['name', 'ASC']] });
-      res.json(products);
+
+      if (!searchText) {
+        return res.json(products);
+      }
+
+      const normalizedSearchText = searchText.toLowerCase();
+      const filteredProducts = products.filter((product) => {
+        const nameMatches = String(product.name).toLowerCase().includes(normalizedSearchText);
+        const keywords = Array.isArray(product.keywords) ? product.keywords : [];
+        const keywordMatches = keywords.some((keyword) =>
+          String(keyword).toLowerCase().includes(normalizedSearchText)
+        );
+
+        return nameMatches || keywordMatches;
+      });
+
+      return res.json(filteredProducts);
     } catch (_error) {
-      res.status(500).json({ message: 'Failed to fetch products' });
+      return res.status(500).json({ message: 'Failed to fetch products' });
     }
   });
 

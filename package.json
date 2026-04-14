@@ -4,14 +4,16 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js", 
+    "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
+    "zip": "node scripts/createProjectZip.js",
     "stop:3000": "powershell -NoProfile -Command \"$conn = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if ($conn) { $conn | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force } }\"",
     "start:clean": "npm run stop:3000 && node server.js",
     "dev:clean": "npm run stop:3000 && nodemon server.js",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "zip": "node scripts/createProjectZip.js"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "archiver": "^7.0.1",
     "eslint": "^10.2.0",
     "globals": "^17.4.0",
     "nodemon": "^3.1.14"

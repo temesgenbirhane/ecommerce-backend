@@ -4,3 +4,4 @@ ecommerce.sqlite
 *.sqlite-journal
 *.sqlite-shm
 *.sqlite-wal
+*.zip
