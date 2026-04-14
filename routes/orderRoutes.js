@@ -60,9 +60,11 @@ export const createOrderRouter = (db) => {
 
   router.post('/', async (req, res) => {
     try {
-      const cart = Array.isArray(req.body) ? req.body : req.body?.cart;
+      const cart = await db.CartItem.findAll({
+        order: [['id', 'ASC']]
+      });
 
-      if (!Array.isArray(cart) || cart.length === 0) {
+      if (cart.length === 0) {
         return res.status(400).json({
           message: 'cart is required and must be a non-empty array'
         });

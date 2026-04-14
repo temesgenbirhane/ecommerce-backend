@@ -13,7 +13,7 @@ export const createSystemRouter = (db, seeders) => {
     res.send('Hello World! 🚀 My Express Server is Running');
   });
 
-  router.get('/api', (_req, res) => {
+  router.get('/hello', (_req, res) => {
     res.json({
       message: 'Welcome to the API',
       status: 'success',
@@ -21,7 +21,7 @@ export const createSystemRouter = (db, seeders) => {
     });
   });
 
-  router.post('/api/hello', (req, res) => {
+  router.post('/hello', (req, res) => {
     const { name } = req.body;
 
     res.json({

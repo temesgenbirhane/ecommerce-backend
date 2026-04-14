@@ -24,6 +24,7 @@ app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use(
+  '/api',
   createSystemRouter(db, {
     seedDefaultCart,
     seedDefaultDeliveryOptions,
@@ -31,12 +32,11 @@ app.use(
     seedDefaultProducts
   })
 );
-app.use('/products', createProductRouter(db)); // adds /products routes at the start of the url,
-//  so in productRoutes.js becomes only '/' and '/:id' instead of '/products/' and '/products/:id'
-app.use('/delivery-options', createDeliveryOptionRouter(db));
-app.use('/orders', createOrderRouter(db));
-app.use('/cart-items', createCartItemRouter(db));
-app.use(createPaymentSummaryRouter(db));
+app.use('/api/products', createProductRouter(db));
+app.use('/api/delivery-options', createDeliveryOptionRouter(db));
+app.use('/api/orders', createOrderRouter(db));
+app.use('/api/cart-items', createCartItemRouter(db));
+app.use('/api', createPaymentSummaryRouter(db));
 
 const startServer = async () => {
   try {
