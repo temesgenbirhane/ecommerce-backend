@@ -51,6 +51,20 @@ app.get('/{*path}', (req, res, next) => {
   return res.sendFile(indexHtmlPath);
 });
 
+const runAutoSeed = async () => {
+  const seedResult = await seedDefaultProducts(db.Product);
+  const deliverySeedResult = await seedDefaultDeliveryOptions(db.DeliveryOption);
+  const orderSeedResult = await seedDefaultOrders(db.Order, db.OrderItem);
+  const cartSeedResult = await seedDefaultCart(db.CartItem);
+
+  return {
+    products: seedResult,
+    deliveryOptions: deliverySeedResult,
+    orders: orderSeedResult,
+    cartItems: cartSeedResult
+  };
+};
+
 const startServer = async () => {
   try {
     if (!existsSync(indexHtmlPath)) {
@@ -58,6 +72,8 @@ const startServer = async () => {
     }
 
     await db.sequelize.sync();
+    const autoSeedResult = await runAutoSeed();
+    console.log('Auto-seed result:', autoSeedResult);
 
     const server = app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);

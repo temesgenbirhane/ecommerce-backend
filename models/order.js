@@ -13,6 +13,12 @@ export default (sequelize, DataTypes) => {
       totalCostCents: {
         type: DataTypes.INTEGER,
         allowNull: false
+      },
+      createdAt: {
+        type: DataTypes.DATE(3)
+      },
+      updatedAt: {
+        type: DataTypes.DATE(3)
       }
     },
     {

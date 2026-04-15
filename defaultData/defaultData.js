@@ -8,6 +8,20 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const withUniqueTimestamps = (records) => {
+  const baseTimeMs = Date.now();
+
+  return records.map((record, index) => {
+    const timestamp = new Date(baseTimeMs + index);
+
+    return {
+      ...record,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+  });
+};
+
 export const defaultProducts = [  // This code is from products.json, to be saved in the database on startup if the products table is empty as a seed data set.
   {
     "id": "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
@@ -494,7 +508,7 @@ export const seedDefaultProducts = async (ProductModel) => {
     return { inserted: 0, skipped: true };
   }
 
-  await ProductModel.bulkCreate(defaultProducts);
+  await ProductModel.bulkCreate(withUniqueTimestamps(defaultProducts));
   return { inserted: defaultProducts.length, skipped: false };
 };
 
@@ -509,7 +523,7 @@ export const seedDefaultDeliveryOptions = async (DeliveryOptionModel) => {
     return { inserted: 0, skipped: true };
   }
 
-  await DeliveryOptionModel.bulkCreate(defaultDeliveryOptions);
+  await DeliveryOptionModel.bulkCreate(withUniqueTimestamps(defaultDeliveryOptions));
   return { inserted: defaultDeliveryOptions.length, skipped: false };
 };
 
@@ -528,7 +542,7 @@ export const seedDefaultCart = async (CartItemModel) => {
     return { inserted: 0, skipped: true };
   }
 
-  await CartItemModel.bulkCreate(defaultCart);
+  await CartItemModel.bulkCreate(withUniqueTimestamps(defaultCart));
   return { inserted: defaultCart.length, skipped: false };
 };
 
@@ -555,8 +569,8 @@ export const seedDefaultOrders = async (OrderModel, OrderItemModel) => {
   );
 
   await OrderModel.sequelize.transaction(async (transaction) => {
-    await OrderModel.bulkCreate(orders, { transaction });
-    await OrderItemModel.bulkCreate(orderItems, { transaction });
+    await OrderModel.bulkCreate(withUniqueTimestamps(orders), { transaction });
+    await OrderItemModel.bulkCreate(withUniqueTimestamps(orderItems), { transaction });
   });
 
   return {

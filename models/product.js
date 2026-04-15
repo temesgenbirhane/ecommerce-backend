@@ -30,6 +30,12 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.JSON,
         allowNull: false,
         defaultValue: []
+      },
+      createdAt: {
+        type: DataTypes.DATE(3)
+      },
+      updatedAt: {
+        type: DataTypes.DATE(3)
       }
     },
     {

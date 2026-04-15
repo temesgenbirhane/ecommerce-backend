@@ -14,6 +14,12 @@ export default (sequelize, DataTypes) => {
       deliveryOptionId: {
         type: DataTypes.STRING,
         allowNull: false
+      },
+      createdAt: {
+        type: DataTypes.DATE(3)
+      },
+      updatedAt: {
+        type: DataTypes.DATE(3)
       }
     },
     {

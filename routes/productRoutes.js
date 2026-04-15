@@ -6,7 +6,7 @@ export const createProductRouter = (db) => {
   router.get('/', async (req, res) => {
     try {
       const searchText = typeof req.query.search === 'string' ? req.query.search.trim() : '';
-      const products = await db.Product.findAll({ order: [['name', 'ASC']] });
+      const products = await db.Product.findAll({ order: [['createdAt', 'ASC']] });
 
       if (!searchText) {
         return res.json(products);

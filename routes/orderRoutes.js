@@ -1,6 +1,20 @@
 import express from 'express';
 import { randomUUID } from 'crypto';
 
+const withUniqueTimestamps = (records) => {
+  const baseTimeMs = Date.now();
+
+  return records.map((record, index) => {
+    const timestamp = new Date(baseTimeMs + index);
+
+    return {
+      ...record,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+  });
+};
+
 const orderInclude = (db, shouldExpandProducts) => [
   {
     model: db.OrderItem,
@@ -27,7 +41,7 @@ export const createOrderRouter = (db) => {
       const { expand } = req.query;
       const shouldExpandProducts = expand === 'products';
 
-      const orders = await db.Order.findAll({
+      const orders = await db.Order.unscoped().findAll({
         order: [['orderTimeMs', 'DESC']],
         include: orderInclude(db, shouldExpandProducts)
       });
@@ -44,7 +58,7 @@ export const createOrderRouter = (db) => {
       const { expand } = req.query;
       const shouldExpandProducts = expand === 'products';
 
-      const order = await db.Order.findByPk(orderId, {
+      const order = await db.Order.unscoped().findByPk(orderId, {
         include: orderInclude(db, shouldExpandProducts)
       });
 
@@ -162,12 +176,14 @@ export const createOrderRouter = (db) => {
         );
 
         await db.OrderItem.bulkCreate(
-          calculatedItems.map((item) => ({
-            orderId,
-            productId: item.productId,
-            quantity: item.quantity,
-            estimatedDeliveryTimeMs: item.estimatedDeliveryTimeMs
-          })),
+          withUniqueTimestamps(
+            calculatedItems.map((item) => ({
+              orderId,
+              productId: item.productId,
+              quantity: item.quantity,
+              estimatedDeliveryTimeMs: item.estimatedDeliveryTimeMs
+            }))
+          ),
           { transaction }
         );
 
@@ -177,7 +193,7 @@ export const createOrderRouter = (db) => {
         });
       });
 
-      const createdOrder = await db.Order.findByPk(orderId, {
+      const createdOrder = await db.Order.unscoped().findByPk(orderId, {
         include: [
           {
             model: db.OrderItem,

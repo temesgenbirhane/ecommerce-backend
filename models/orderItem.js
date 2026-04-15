@@ -20,6 +20,12 @@ export default (sequelize, DataTypes) => {
       estimatedDeliveryTimeMs: {
         type: DataTypes.BIGINT,
         allowNull: false
+      },
+      createdAt: {
+        type: DataTypes.DATE(3)
+      },
+      updatedAt: {
+        type: DataTypes.DATE(3)
       }
     },
     {

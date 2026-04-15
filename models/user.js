@@ -22,6 +22,12 @@ export default (sequelize, DataTypes) => {
       passwordHash: {
         type: DataTypes.STRING,
         allowNull: false
+      },
+      createdAt: {
+        type: DataTypes.DATE(3)
+      },
+      updatedAt: {
+        type: DataTypes.DATE(3)
       }
     },
     {
