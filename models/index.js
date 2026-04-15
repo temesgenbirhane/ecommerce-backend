@@ -6,25 +6,30 @@ import defineOrderItem from './orderItem.js';
 import defineDeliveryOption from './deliveryOption.js';
 import defineCart from './CartItem.js';
 
-const hasRdsConfig = Boolean(
-  process.env.RDS_HOSTNAME &&
-  process.env.RDS_DB_NAME &&
-  process.env.RDS_USERNAME &&
-  process.env.RDS_PASSWORD
-);
+const dbType = (process.env.DB_TYPE || '').toLowerCase();
+const dbName = process.env.RDS_DB_NAME || process.env.DB_NAME;
+const dbUser = process.env.RDS_USERNAME || process.env.DB_USERNAME;
+const dbPassword = process.env.RDS_PASSWORD || process.env.DB_PASSWORD;
+const dbHost = process.env.RDS_HOSTNAME || process.env.DB_HOST;
+const dbPort = process.env.RDS_PORT || process.env.DB_PORT;
 
-const sequelize = hasRdsConfig
-  ? new Sequelize(
-      process.env.RDS_DB_NAME,
-      process.env.RDS_USERNAME,
-      process.env.RDS_PASSWORD,
-      {
-        host: process.env.RDS_HOSTNAME,
-        port: process.env.RDS_PORT ? Number(process.env.RDS_PORT) : 3306,
-        dialect: 'mysql',
-        logging: false
-      }
-    )
+const hasNetworkDbConfig = Boolean(dbHost && dbName && dbUser && dbPassword);
+const networkDialect = dbType === 'mysql' ? 'mysql' : dbType === 'postgres' || dbType === 'postgresql' ? 'postgres' : null;
+const defaultPortByDialect = {
+  mysql: 3306,
+  postgres: 5432
+};
+const defaultNetworkPort = networkDialect ? defaultPortByDialect[networkDialect] : undefined;
+
+const networkConfig = {
+  host: dbHost,
+  port: dbPort ? Number(dbPort) : defaultNetworkPort,
+  dialect: networkDialect,
+  logging: false
+};
+
+const sequelize = hasNetworkDbConfig && networkDialect
+  ? new Sequelize(dbName, dbUser, dbPassword, networkConfig)
   : new Sequelize({
       dialect: 'sqlite',
       storage: './ecommerce.sqlite',
