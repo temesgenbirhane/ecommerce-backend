@@ -5,3 +5,4 @@ ecommerce.sqlite
 *.sqlite-shm
 *.sqlite-wal
 *.zip
+dist

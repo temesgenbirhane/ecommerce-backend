@@ -12,8 +12,7 @@
     "start:clean": "npm run stop:3000 && node server.js",
     "dev:clean": "npm run stop:3000 && nodemon server.js",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "zip": "node scripts/createProjectZip.js"
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [],
   "author": "",
@@ -22,7 +21,7 @@
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "mysql2": "^3.15.3",
+    "mysql2": "^3.22.0",
     "sequelize": "^6.37.8",
     "sqlite3": "^6.0.1"
   },

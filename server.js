@@ -1,4 +1,5 @@
 import express from 'express';
+import { existsSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import db from './models/index.js';
@@ -19,9 +20,13 @@ const app = express();
 const PORT = 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const distPath = path.join(__dirname, 'dist');
+const indexHtmlPath = path.join(distPath, 'index.html');
 
 app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use('/dist', express.static(distPath));
+app.use(express.static(distPath));
 
 app.use(
   '/api',
@@ -38,8 +43,20 @@ app.use('/api/orders', createOrderRouter(db));
 app.use('/api/cart-items', createCartItemRouter(db));
 app.use('/api', createPaymentSummaryRouter(db));
 
+app.get('/{*path}', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+
+  return res.sendFile(indexHtmlPath);
+});
+
 const startServer = async () => {
   try {
+    if (!existsSync(indexHtmlPath)) {
+      throw new Error(`Missing frontend build file: ${indexHtmlPath}`);
+    }
+
     await db.sequelize.sync();
 
     const server = app.listen(PORT, () => {
