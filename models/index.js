@@ -6,11 +6,30 @@ import defineOrderItem from './orderItem.js';
 import defineDeliveryOption from './deliveryOption.js';
 import defineCart from './CartItem.js';
 
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: './ecommerce.sqlite',
-  logging: false
-});
+const hasRdsConfig = Boolean(
+  process.env.RDS_HOSTNAME &&
+  process.env.RDS_DB_NAME &&
+  process.env.RDS_USERNAME &&
+  process.env.RDS_PASSWORD
+);
+
+const sequelize = hasRdsConfig
+  ? new Sequelize(
+      process.env.RDS_DB_NAME,
+      process.env.RDS_USERNAME,
+      process.env.RDS_PASSWORD,
+      {
+        host: process.env.RDS_HOSTNAME,
+        port: process.env.RDS_PORT ? Number(process.env.RDS_PORT) : 3306,
+        dialect: 'mysql',
+        logging: false
+      }
+    )
+  : new Sequelize({
+      dialect: 'sqlite',
+      storage: './ecommerce.sqlite',
+      logging: false
+    });
 
 const db = {};
 
